@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import plotly
 import plotly.express as px
 import argparse
 
@@ -18,11 +19,14 @@ def main():
                      quotechar='"', escapechar="/", skiprows=[0,1,2])
 
    df = df.replace(np.nan, '', regex=True )
+   df = df[df.Company != '']
+   df["Company"] = df["Company"].str.lower() 
    df["name"] = df["First Name"] + " " + df["Last Name"]
-   fig = px.treemap(df, path=[ 'Company', 'Position', 'name' ], 
-                    width=1200, height=1200)
-   fig.show()
 
+    
+   fig = px.treemap(df, path=[ 'Company', 'Position', 'name' ], 
+                    width=1200, height=1200, color='Company')
+   fig.show()
 
 if __name__ == "__main__":
    main()
