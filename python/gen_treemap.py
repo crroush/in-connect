@@ -7,8 +7,11 @@ import argparse
 def main():
    parser = argparse.ArgumentParser()
    parser.add_argument("csv_fname", 
-                        help="Exported CSV file Connections.csv from LinkedIn", \
+                        help="Exported CSV file Connections.csv from LinkedIN", \
                         type=str)
+   parser.add_argument("--network_name", 
+                        help="Network name for plotting", \
+                        type=str, default="LinkedIN Network")
    args = parser.parse_args()
    
    # Note the csv file names can have quotes, so we need to escape them
@@ -20,11 +23,12 @@ def main():
 
    df = df.replace(np.nan, '', regex=True )
    df = df[df.Company != '']
+   df["Network"] = args.network_name 
    df["Company"] = df["Company"].str.lower() 
-   df["name"] = df["First Name"] + " " + df["Last Name"]
+   df["name"]    = df["First Name"] + " " + df["Last Name"]
 
     
-   fig = px.treemap(df, path=[ 'Company', 'Position', 'name' ], 
+   fig = px.treemap(df, path=[ 'Network', 'Company', 'Position', 'name' ], 
                     width=1200, height=1200, color='Company')
    fig.show()
 
