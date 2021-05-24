@@ -30,6 +30,11 @@ def cosine_sim( aa, bb):
    den = np.sqrt( sum_aa) * np.sqrt( sum_bb )
    
    return  num/den 
+def cosine_dist( xi, yi, **vals ):
+   vals = vals["names"]
+   aa = vals[int(xi)]
+   bb = vals[int(yi)]
+   return 1.0 - cosine_sim( aa, bb )
 
 def cosine_ngram( xi, yi, **vals ):
    '''
@@ -45,7 +50,7 @@ def cosine_ngram( xi, yi, **vals ):
    aa_c = bigram( "".join(aa) )
    bb_c = bigram( "".join(bb) )
 
-   return 1-cosine_sim( list(aa_c), list(bb_c) ) 
+   return cosine_sim( list(aa_c), list(bb_c) ) 
 def cleanup_text( text ):
    ''' 
    Cleans up the words, first removes punctuation,
@@ -67,13 +72,13 @@ def cluster_names(token_list):
    # Apply DBSCAN to cluster the results
    vals = {}
    vals["names"] = token_list 
-   db = cluster.DBSCAN(metric=cosine_ngram, metric_params=vals, min_samples=2)
+   db = cluster.DBSCAN(metric=cosine_dist, metric_params=vals, min_samples=2)
    xx = np.arange( len(token_list)).reshape(-1,1)
    clust = db.fit(xx )
    dclusters = collections.defaultdict(list) 
-   for ii, label in enumerate(clust.labels_):
-      dclusters[label].append(ii)
-   return dclusters 
+   #for ii, label in enumerate(clust.labels_):
+   #   dclusters[label].append(ii)
+   return clust 
 
 def main():
    # Some simple company names
@@ -97,8 +102,7 @@ def main():
       words = cleanup_text( company ) 
       filt_names.append(words) 
 
-   dclusters = cluster_names( filt_names )
-   print( dclusters)
+   #dclusters = cluster_names( filt_names )
 
 
 if __name__ == "__main__":
