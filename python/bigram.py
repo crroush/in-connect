@@ -3,7 +3,7 @@ import collections
 import numpy as np
 import argparse
 import re
-from sklearn import cluster
+from sklearn import cluster #DBScan
 
 def bigram( aa ):
    ''' 
@@ -46,36 +46,58 @@ def cosine_ngram( xi, yi, **vals ):
    bb_c = bigram( "".join(bb) )
 
    return 1-cosine_sim( list(aa_c), list(bb_c) ) 
-    
-def main():
-   # get rid of punctuation
+def cleanup_text( text ):
+   ''' 
+   Cleans up the words, first removes punctuation,
+   then lower cases everything.  There are a lot of things you can do here,
+   however this is the simpliest way to start.  
+   Returns tokenized output
+   '''
+
    txt_filt = re.compile( r"\w+" )
+   words = txt_filt.findall(text)
+   words = [ word.lower() for word in words ]
+   return words 
 
-   # Some simple company names
-   companies = []
-   companies.append( "BLUE Farm Inc" )
-   companies.append( "blue farm" )
-   companies.append( "blue farm, Inc" )
-   companies.append( "Blue Farm Inc." )
-   companies.append( "Green House Inc.")
-   companies.append( "Green House" )
-   companies.append( "Green House corp" )
-   companies.append( "Blah" ) 
-   filt_names = [] 
-   for company in companies:
-      words = txt_filt.findall(company)
-      words = [ word.lower() for word in words ]
-      filt_names.append(words) 
-
+def cluster_names(token_list):
+   ''' 
+      takes a list of list of tokens for each name
+      clusters the result using the cosine distance
+   '''
    # Apply DBSCAN to cluster the results
    vals = {}
-   vals["names"] = filt_names
+   vals["names"] = token_list 
    db = cluster.DBSCAN(metric=cosine_ngram, metric_params=vals, min_samples=2)
-   xx = np.arange( len(filt_names)).reshape(-1,1)
+   xx = np.arange( len(token_list)).reshape(-1,1)
    clust = db.fit(xx )
    dclusters = collections.defaultdict(list) 
    for ii, label in enumerate(clust.labels_):
       dclusters[label].append(ii)
+   return dclusters 
+
+def main():
+   # Some simple company names
+   companies = []
+   # cluster 0
+   companies.append( "BLUE Farm Inc" )
+   companies.append( "blue farm" )
+   companies.append( "blue farm, Inc" )
+   companies.append( "Blue Farm Inc." )
+   # cluster 1
+   companies.append( "Green House Inc.")
+   companies.append( "Green House" )
+   companies.append( "Green House corp" )
+   
+   # no cluster (e.g. residual )
+   companies.append( "Blah Fake Inc" ) 
+
+   # Clean up the words
+   filt_names = [] 
+   for company in companies:
+      words = cleanup_text( company ) 
+      filt_names.append(words) 
+
+   dclusters = cluster_names( filt_names )
    print( dclusters)
 
 
