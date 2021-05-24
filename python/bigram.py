@@ -1,7 +1,9 @@
 from collections import Counter
+import collections
 import numpy as np
 import argparse
 import re
+from sklearn import cluster
 
 def bigram( aa ):
    ''' 
@@ -13,12 +15,14 @@ def bigram( aa ):
                   for idx in range( len(aa) -1 ))
    return res
 
-def cosine_sim( aa_c, bb_c ):
+def cosine_sim( aa, bb):
    '''
    Computes the Cosine Similarity between two Counters
    aa . bb / (|aa||bb|) = cos(Θ)
-      
    '''
+
+   aa_c = Counter(aa)
+   bb_c = Counter(bb)
    intersec = set(aa_c).intersection(set(bb_c))
    num = sum( [aa_c[xx]*bb_c[xx]  **2 for xx in intersec ]) 
    sum_aa = sum( [aa_c[xx] **2 for xx in aa_c.keys() ]) 
@@ -27,17 +31,21 @@ def cosine_sim( aa_c, bb_c ):
    
    return  num/den 
 
-def cosine_ngram( aa, bb ):
+def cosine_ngram( xi, yi, **vals ):
    '''
-   Computes the Cosine Similarity between two Counters
+   Computes the Cosine Distance between two indexs and vals 
    that are grouped in digraphs "STRING" = "ST RI NG" as
    the tokens
    aa . bb / (|aa||bb|) = cos(Θ)
 
    '''
-   aa_c = bigram( "".join(aa.keys()) )
-   bb_c = bigram( "".join(bb.keys()) )
-   return cosine_sim( aa_c, bb_c ) 
+   vals = vals["names"]
+   aa = vals[int(xi)]
+   bb = vals[int(yi)]
+   aa_c = bigram( "".join(aa) )
+   bb_c = bigram( "".join(bb) )
+
+   return 1-cosine_sim( list(aa_c), list(bb_c) ) 
     
 def main():
    # get rid of punctuation
@@ -49,18 +57,26 @@ def main():
    companies.append( "blue farm" )
    companies.append( "blue farm, Inc" )
    companies.append( "Blue Farm Inc." )
+   companies.append( "Green House Inc.")
+   companies.append( "Green House" )
+   companies.append( "Green House corp" )
+   companies.append( "Blah" ) 
    filt_names = [] 
    for company in companies:
-      # Remove all the punctuation, and lower case everything
       words = txt_filt.findall(company)
       words = [ word.lower() for word in words ]
-      filt_names.append(Counter(words))
+      filt_names.append(words) 
 
-   sim = cosine_sim( filt_names[1],  filt_names[2] ) 
-   nsim = cosine_ngram( filt_names[1], filt_names[2] ) 
-
-   print( "Sim = %f"%(sim))
-   print( "Ngram Sim = %f"%(nsim))
+   # Apply DBSCAN to cluster the results
+   vals = {}
+   vals["names"] = filt_names
+   db = cluster.DBSCAN(metric=cosine_ngram, metric_params=vals, min_samples=2)
+   xx = np.arange( len(filt_names)).reshape(-1,1)
+   clust = db.fit(xx )
+   dclusters = collections.defaultdict(list) 
+   for ii, label in enumerate(clust.labels_):
+      dclusters[label].append(ii)
+   print( dclusters)
 
 
 if __name__ == "__main__":
