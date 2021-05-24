@@ -11,7 +11,7 @@ import bigram
 def main():
    parser = argparse.ArgumentParser()
    parser.add_argument("csv_fname", 
-                        help="Exported CSV file Connections.csv from LinkedIN", \
+                        help="Exported CSV file Connections.csv from LinkedIn", \
                         type=str)
    args = parser.parse_args()
    
@@ -31,14 +31,10 @@ def main():
    for company in df["Company"]:
       words = bigram.cleanup_text( company ) 
       filt_names.append(words) 
-   print( len(df["Company"]))
    
    db = bigram.cluster_names( filt_names )
 
-   core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
-   core_samples_mask[db.core_sample_indices_] = True
    labels = db.labels_
-   
    # Number of clusters in labels, ignoring noise if present.
    n_clusters  = len(set(labels)) - (1 if -1 in labels else 0)
    n_noise     = list(labels).count(-1)
@@ -47,10 +43,11 @@ def main():
    xx = np.arange( len(filt_names)).reshape(-1,1)
 
    clusters = collections.defaultdict(list) 
-   for ii, label in enumerate(db.labels_):
-      clusters[label].append({"Company": df.iloc[ii]["Company"],
-                              "Name"   : df.iloc[ii]["name"],
-                              "idx"    : ii})
+   for ii, label in enumerate(labels):
+      clusters[label].append({"Company"  : df.iloc[ii]["Company"],
+                              "Name"     : df.iloc[ii]["name"],
+                              "Position" : df.iloc[ii]["Position"],
+                              "idx"      : ii})
 
    hover_text  = []    
    bubble_size = []
@@ -75,7 +72,8 @@ def main():
    fig.update_traces(mode='markers', marker=dict(sizemode='area', line_width=2 ))
    fig.update_layout( title="LinkedIn Network", 
                       yaxis=dict( title="Number of Contacts" ),
-                      xaxis=dict( title="Companies" ))
+                      xaxis=dict( title="Companies" ),
+                      legend={'traceorder':'grouped'})
    fig.show()
    print('Estimated number of clusters: %d' % n_clusters )
    print('Estimated number of noise points: %d' % n_noise )
