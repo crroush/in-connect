@@ -24,7 +24,6 @@ def main():
 
    df = df.replace(np.nan, '', regex=True )
    df = df[df.Company != '']
-   df["Company"] = df["Company"].str.lower() 
    df["name"]    = df["First Name"] + " " + df["Last Name"]
 
    filt_names = [] 

@@ -9,12 +9,12 @@ There are some challenges when I started looking at my contact list after export
 
 This task requires we cluster the different companies / titles with some kind of similarity test, and then use a clustering algorithm (dbscan or similar) to cluster the results using the distance metric.  
 # Approach
-The goal here was not to find the best algorithm for determining simularity, but try to get something that would work reasonably well, with some potential for contaimination.  
+The goal here was not to find the best algorithm for determining similarity, but try to get something that would work reasonably well, with some potential for contamination.  
 * First filter each company to remove punctuation, special symbols and to lowercase each word (token).  
 * Using dbscan with the [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity) metric cluster the companies.
 * Group and plot the results
 
-During the trade offs, I did try using [bigrams](https://en.wikipedia.org/wiki/Bigram) and [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance).  I read up on a few others, but ultimately settled on this approach due to the simplistic nature of it mostly working for my use case.  
+During the trade offs, I did try using [bigrams](https://en.wikipedia.org/wiki/Bigram) and [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance).  I read up on a few others, but ultimately settled on this approach due to the simplistic nature of it and it working for my use case.  
 
 # Requirements:
 * ``` pip install plotly ```
