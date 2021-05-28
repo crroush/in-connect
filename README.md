@@ -34,3 +34,8 @@ python python/generate_data.py mycontact.csv --num_contacts=1000 --num_companies
 The result from running cluster_companies.py provides a bubble chart that gives you all of your contacts within a company when you mouse over each bubble.
 
 ![image](https://user-images.githubusercontent.com/9982203/119418163-9b441e80-bcb4-11eb-9432-a8e63e7b6a3f.png)
+
+Generate a Tree Map similar to [this](https://towardsdatascience.com/linkedin-network-visualisation-using-plotly-9e1962247859)  
+```
+python python/gen_treemap.py mycontact.csv --network_name="Fake Network"
+```
