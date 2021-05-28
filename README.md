@@ -1,7 +1,7 @@
 # in-connect
 LinkedIn provides a lot of really good information about how you are connected.  They do not provide all the ways a normal user might want to look at their contacts.  I was interested to see what people I had in my network that worked either at the same company, or held similar job titles.  This project is designed to give a way to group our contacts by company or position.
 
-There are some challenges when I started looking at my contact list after exporting it from LinkedIn.
+I initially started with this [article](https://towardsdatascience.com/linkedin-network-visualisation-using-plotly-9e1962247859) in ordrer to create a tree map of my data.  Which was super easy to do, but the draw backs quickly limited my view into the data.
 
 * People do not always input the company name in the same format, for instance: ABC Corp, ABC Corporation, ABC Corp.
 * There are various punctuations / capitalizations of names. 
@@ -21,6 +21,7 @@ During the trade offs, I did try using [bigrams](https://en.wikipedia.org/wiki/B
 * ``` pip install Faker ```
 * ``` pip install pandas ```
 * ``` pip install numpy ```
+* ``` pip install sklearn ```
 
 # Usage
 ``` 
@@ -31,11 +32,14 @@ Generate Fake Connections
 ```
 python python/generate_data.py mycontact.csv --num_contacts=1000 --num_companies=25
 ```
-The result from running cluster_companies.py provides a bubble chart that gives you all of your contacts within a company when you mouse over each bubble.
+The result from running cluster_companies.py provides a bubble chart that gives you all of your contacts within a company when you mouse over each bubble.  **Note the bigger bubbles I am seeing an issue with wrapping the hover text that I need to sort out**
 
 ![image](https://user-images.githubusercontent.com/9982203/119418163-9b441e80-bcb4-11eb-9432-a8e63e7b6a3f.png)
 
-Generate a Tree Map similar to [this](https://towardsdatascience.com/linkedin-network-visualisation-using-plotly-9e1962247859)  
+You can see a "live" version of the plot [here](https://crroush.github.io/in-connect/bubble_chart.html)
+
+Generate a Tree Map
 ```
 python python/gen_treemap.py mycontact.csv --network_name="Fake Network"
 ```
+You can view my ["fake network"](https://crroush.github.io/in-connect/fake_network.html) I generated to get an idea of how you might drill down into your data.
