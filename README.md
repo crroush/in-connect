@@ -32,7 +32,7 @@ Generate Fake Connections
 ```
 python python/generate_data.py mycontact.csv --num_contacts=1000 --num_companies=25
 ```
-The result from running cluster_companies.py provides a bubble chart that gives you all of your contacts within a company when you mouse over each bubble.  **Note the bigger bubbles I am seeing an issue with wrapping the hover text that I need to sort out**
+The result from running cluster_companies.py provides a bubble chart that gives you all of your contacts within a company when you mouse over each bubble. 
 
 ![image](https://user-images.githubusercontent.com/9982203/119418163-9b441e80-bcb4-11eb-9432-a8e63e7b6a3f.png)
 
