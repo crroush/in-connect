@@ -1,0 +1,9 @@
+# Required packages
+plotly
+Faker
+pandas
+numpy
+sklearn
+elasticsearch
+dash
+dash_bootstrap_components
