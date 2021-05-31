@@ -6,7 +6,7 @@ import dash_bootstrap_components as dbc
 import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import pandas as pd
 import argparse
 
@@ -54,57 +54,108 @@ for ii, label in enumerate(labels):
                            "Name"     : df.iloc[ii]["Name"],
                            "Position" : df.iloc[ii]["Position"],
                            "Connected On" : df.iloc[ii]["Connected On"],
-                           "idx"      : ii})
+                           "id"      : ii})
 
 max_ppl = max([len(clusters[xx]) for xx in clusters])
 
+btn_style ={
+              "backgroundColor": "#404040",
+              "color": "white",
+              "text-align": "center",
+              "margin-bottom": "5px"
+            }
+tab_style ={
+              "backgroundColor": "#121212",
+              "color": "white",
+              "text-align": "center",
+              "margin-bottom": "5px"
+            }
+
+columns=([{'id': p, 'name': p} for p in clusters[0][0].keys()])
+
 # Web stuff
+
+tab_connect = dcc.Tab(label="Connections", value="plot_tab", style=tab_style,
+                selected_style={"background": "#404040", "color": "white"} )
+tab_annotate = dcc.Tab(label="Annotations", value="annotate_tab", style=tab_style,
+                selected_style={"background": "#404040", "color": "white"} )
+
+connect_content = html.Div( [
+                      html.Button("Edit", id="edit-contact_btn", n_clicks=0,
+                                   style=btn_style),
+                      html.Button("Add Interaction", id="inter-contact_btn",
+                                   n_clicks=0, style=btn_style),
+                      dash_table.DataTable(
+                          id='table',
+                          columns =
+                              [{'id': p, 'name': p} for p in clusters[0][0].keys()],
+                          editable=False,
+                          row_selectable="multi",
+                          column_selectable=False,
+                          cell_selectable=False,
+                          page_size=5,
+                          selected_row_ids = [],
+                          style_table={'overflowX':'scroll'},
+                          style_header={'backgroundColor': '#181818'},
+                          style_cell={
+                              'backgroundColor': '#121212',
+                              'color': 'white',
+                              'text-align': 'center',
+                              },
+                          style_cell_conditional=[ {'if': {'column_id': 'id', },
+                                                  'display': 'None',}]
+                          )
+                  ])
+annotate_content = html.Div([html.H3("Garbage")])
+
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
+
 app.layout = html.Div( [
-                dcc.Graph(id="scatter-plot"),
-                    #html.P("LinkedIn Connections by Company"),
-                dcc.RangeSlider(
-                        id='range-slider',
-                        min=0, max=max_ppl, step=1,
-                        marks={0:'0', max_ppl:'%s'%(max_ppl)},
-                        value=[0,max_ppl],
-                        tooltip={'placement': 'top', 'always_visible': True},
-                ),
-                dash_table.DataTable(
-                    id='table',
-                    columns=(
-                        [{'id': p, 'name': p} for p in clusters[0][0].keys()]
-                    ),
-                    editable=True,
-                    style_table={'overflowX':'scroll'},
-                    style_header={'backgroundColor': 'rgb(30, 30, 30)'},
-                    style_cell={
-                        'backgroundColor': 'rgb(50, 50, 50)',
-                        'color': 'white',
-                        'text-align': 'center',
-                        }
-                    )
-                ])
+               dcc.Graph(id="scatter-plot"),
+               dcc.RangeSlider(
+                       id='range-slider',
+                       min=0, max=max_ppl, step=1,
+                       marks={0:'0', max_ppl:'%s'%(max_ppl)},
+                       value=[0,max_ppl],
+                       tooltip={'placement': 'top', 'always_visible': True},
+               ),
+
+    dcc.Tabs( id="tabs", value="plot_tab",
+              children=[ tab_connect, tab_annotate ]),
+    # Assigning the children to the content allows the callbacks to function
+    # properly
+    html.Div( id="tabs-content", children=connect_content)
+    ])
+
+
+# Web page callbacks
 @app.callback(
-     Output( "table", "data"),
+        Output("tabs-content", "children"),
+        Input( "tabs", "value" ))
+def render_content(tab):
+    if tab == "plot_tab":
+        return connect_content
+    if tab == "annotate_tab":
+        return annotate_content
+
+
+@app.callback(
+     [Output( "table", "data"),
+      Output( "table", "selected_row_ids"),
+      Output( "table", "selected_rows" ),
+      Output('table', 'page_current')
+      ],
     [Input( 'scatter-plot', 'hoverData')])
 def display_hover_data(hoverData):
-    if hoverData == None: return
+    if hoverData == None: return None, [], [], 0
     cluster = clusters[hoverData['points'][0]['x']]
-    return cluster
-    try:
-        print( hoverData['points'][0]['x'])
-        print( clusters[hoverData['points'][0]['x']])
-        val = json.dumps( clusters[hoverData['points'][0]['x']], indent=2 )
-        print( val )
-        return val
-    except:
-        return None
+    return cluster, [], [], 0
 
 @app.callback(
     Output( "scatter-plot", "figure"),
-    [Input( "range-slider", "value")])
-def update_company_chart( slider_range ):
+    Input( "range-slider", "value")
+    )
+def update_company_chart( slider_range):
     low, high = slider_range
     hover_text  = []
     bubble_size = []
@@ -130,5 +181,19 @@ def update_company_chart( slider_range ):
                        legend={'traceorder':'grouped'},
                        template="plotly_dark")
     return fig
+
+@app.callback(
+    Output("table", "style_data_conditional"),
+    Input("table", "derived_virtual_selected_row_ids"),
+)
+def style_selected_rows(sel_rows):
+    if sel_rows is None:
+        return dash.no_update
+    val = [
+        {"if": {"filter_query": "{{id}} ={}".format(i)}, "backgroundColor": "#404040",}
+        for i in sel_rows
+    ]
+    return val
+
 
 app.run_server(debug=True)
